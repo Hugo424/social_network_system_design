@@ -1,0 +1,468 @@
+openapi: 3.0.4
+info:
+  title: Poehali API
+  description:
+    API социальной сети
+  version: 1.0.0
+tags:
+  - name: posts
+    description: Posts
+  - name: messages
+    description: Messages
+  - name: users
+    description: Operations with users
+  - name: media
+    description: Operations with mediafiles
+paths:
+  /posts:
+    post:
+      tags:
+        - posts
+      summary: Add a post.
+      requestBody:
+        description: Create a post
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+    get:
+      tags:
+        - posts
+      summary: Get posts with pagination.
+      parameters:
+        - name: page_size
+          in: query
+          description: Number of posts to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 10
+        - name: cursor
+          in: query
+          description: Cursor for pagination (timestamp of last record)
+          required: false
+          schema:
+            type: string
+            example: "1709649600"
+        - name: location_id
+          in: query
+          description: Location ID
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 23324
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostsResponse'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+  /posts/{postId}/comments:
+    post:
+      tags:
+        - posts
+      summary: Send comment to post.
+      parameters:
+        - name: postId
+          in: path
+          description: The ID of the post to which we want to add a comment
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 345643
+      requestBody:
+        description: Send comment to post.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentCreate'
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this post
+        '404':
+          description: Post not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+    get:
+      tags:
+        - posts
+      summary: Get post comments
+      parameters:
+        - name: postId
+          in: path
+          description: The ID of the post to which we want to get comments
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 345643
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentsResponse'
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this post
+        '404':
+          description: Post not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+  /posts/{postId}/like:
+    post:
+      tags:
+        - posts
+      summary: Like the post.
+      parameters:
+        - name: postId
+          in: path
+          description: The ID of the post to which we want to like
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 345643
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this post
+        '404':
+          description: Post not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+  /chats/{chatId}/messages:
+    get:
+      tags:
+        - messages
+      summary: Get messages from the chat.
+      parameters:
+        - name: chatId
+          in: path
+          description: The ID of the chat from which we want to receive messages
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1456
+        - name: page_size
+          in: query
+          description: Number of messages to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 10
+        - name: cursor
+          in: query
+          description: Cursor for pagination (timestamp of last message)
+          required: false
+          schema:
+            type: string
+            example: "1709649600"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
+        '400':
+          description: Invalid input
+        '403':
+          description: Access denied to this chat
+        '404':
+          description: Chat not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+    post:
+      tags:
+        - messages
+      summary: Send message to chat.
+      parameters:
+        - name: chatId
+          in: path
+          description: The ID of the chat from which we want to receive messages
+          required: true
+          schema:
+            type: integer
+            example: 1456
+      requestBody:
+        description: Send message to chat with user or group.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this chat
+        '404':
+          description: Chat not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+  /users/{userId}/follow:
+    post:
+      tags:
+        - users
+      summary: Subscribe to user.
+      parameters:
+        - name: userId
+          in: path
+          description: The ID of the user from which we want to follow
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1199323
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this user
+        '404':
+          description: User not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+  /media/upload:
+    post:
+      tags:
+        - media
+      summary: Upload media file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Media file to upload
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaUploadResponse'
+        '400':
+          description: Invalid file or parameters
+        '413':
+          description: File too large
+        '422':
+          description: Processing failed
+        '500':
+          description: Internal server error
+  /media/{media_uuid}:
+    get:
+      tags:
+        - media
+      summary: Get media file
+      parameters:
+        - name: media_uuid
+          in: path
+          description: Uuid of the media file
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Media file content
+        '404':
+          description: Media file not found
+        '403':
+          description: Access denied
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    PostsResponse:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    PostCreate:
+      type: object
+      properties:
+        location_id:
+          type: integer
+          format: int64
+          example: 345345
+        photo_uuid:
+          type: string
+          format: uuid
+        description:
+          type: string
+          format: text
+          example: Всем привет, сегодня я в Саратове. Погодка - блеск!
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        author_id:
+          type: integer
+          format: int64
+          example: 198772
+        location_id:
+          type: integer
+          format: int64
+          example: 345345
+        photo_uuid:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        description:
+          type: string
+          example: Всем привет, сегодня я в Саратове. Погодка - блеск!
+        comments_count:
+          type: integer
+          format: int64
+          example: 10
+        likes_count:
+          type: integer
+          format: int64
+          example: 100
+        created_at:
+          type: string
+          format: date-time
+    MessagesResponse:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Message:
+      type: object
+      properties:
+        author_id:
+          type: integer
+          format: int64
+          example: 3566
+        message_text:
+          type: string
+          example: "Привет, как съездил в Сызрань?"
+        created_at:
+          type: string
+          format: date-time
+    CommentCreate:
+      type: object
+      properties:
+        comment_text:
+          type: string
+          example: "Буду в Пензе - позвоню"
+    CommentsResponse:
+      type: object
+      properties:
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Comment:
+      type: object
+      properties:
+        author_id:
+          type: integer
+          format: int64
+          example: 1199323
+        comment_text:
+          type: string
+          example: "Буду в Пензе - позвоню"
+        created_at:
+          type: string
+          format: date
+          example: "2025-09-04T18:16:48+03:00"
+    MediaUploadResponse:
+      type: object
+      properties:
+        file_uuid:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+    Pagination:
+      type: object
+      properties:
+        has_next:
+          type: boolean
+          example: true
+        next_cursor:
+          type: string
+          example: "1709649000"
+        total_count:
+          type: integer
+          format: int64
+          example: 15420
