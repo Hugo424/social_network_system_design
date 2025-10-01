@@ -7,10 +7,10 @@ info:
 tags:
   - name: posts
     description: Posts
-  - name: messages
-    description: Messages
-  - name: users
-    description: Operations with users
+  - name: subscriptions
+    description: Operations with subscriptions
+  - name: reactions
+    description: Operations with reactions
   - name: media
     description: Operations with mediafiles
 paths:
@@ -79,13 +79,202 @@ paths:
           description: Invalid input
         '500':
           description: Internal server error
-  /posts/{postId}/comments:
-    post:
+  /posts/{post_id}:
+    put:
       tags:
         - posts
+      summary: Update post.
+      parameters:
+        - name: post_id
+          in: path
+          description: Post ID to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 111
+      requestBody:
+        description: Update post
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdate'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this post
+        '404':
+          description: Post not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+    delete:
+      tags:
+        - posts
+      summary: Delete post.
+      parameters:
+        - name: post_id
+          in: path
+          description: Post ID to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 111
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this post
+        '404':
+          description: Post not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+  /subscriptions/{user_id}:
+    post:
+      tags:
+        - subscriptions
+      summary: Subscribe to user.
+      parameters:
+        - name: user_id
+          in: path
+          description: The ID of the user from which we want to follow
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1199323
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this user
+        '404':
+          description: User not found
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal server error
+    delete:
+      tags:
+        - subscriptions
+      summary: Unsubscribe from user.
+      parameters:
+        - name: user_id
+          in: path
+          description: The ID of the user from which we want to unfollow
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1199323
+      responses:
+        '204':
+          description: Successfully unsubscribed
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: User not found or subscription doesn't exist
+        '500':
+          description: Internal server error
+  /reactions/likes/{post_id}:
+    post:
+      tags:
+        - reactions
+      summary: Like post
+      parameters:
+        - name: post_id
+          in: path
+          description: The ID of the post to like
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1199323
+      responses:
+        '200':
+          description: Successfully like
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this post
+        '404':
+          description: Post not found
+        '500':
+          description: Internal server error
+    get:
+      tags:
+        - reactions
+      summary: Get post likes
+      parameters:
+        - name: post_id
+          in: path
+          description: The ID of the post to get likes
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1199323
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikesResponse'
+        '400':
+          description: Invalid ID supplied
+        '403':
+          description: Access denied to this post
+        '404':
+          description: Post not found
+        '500':
+          description: Internal server error
+
+    delete:
+      tags:
+        - reactions
+      summary: Unlike post
+      parameters:
+        - name: post_id
+          in: path
+          description: The ID of the post to unlike
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1199323
+      responses:
+        '204':
+          description: Successfully unliked
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Post not found or reaction doesn't exist
+        '500':
+          description: Internal server error
+  /reactions/comments/{post_id}:
+    post:
+      tags:
+        - reactions
       summary: Send comment to post.
       parameters:
-        - name: postId
+        - name: post_id
           in: path
           description: The ID of the post to which we want to add a comment
           required: true
@@ -118,10 +307,10 @@ paths:
           description: Internal server error
     get:
       tags:
-        - posts
+        - reactions
       summary: Get post comments
       parameters:
-        - name: postId
+        - name: post_id
           in: path
           description: The ID of the post to which we want to get comments
           required: true
@@ -146,22 +335,22 @@ paths:
           description: Validation exception
         '500':
           description: Internal server error
-  /posts/{postId}/like:
-    post:
+  /reactions/comments/{comment_id}:
+    delete:
       tags:
-        - posts
-      summary: Like the post.
+        - reactions
+      summary: Delete comment.
       parameters:
-        - name: postId
+        - name: comment_id
           in: path
-          description: The ID of the post to which we want to like
+          description: Comment ID to delete
           required: true
           schema:
             type: integer
             format: int64
-            example: 345643
+            example: 111
       responses:
-        '200':
+        '204':
           description: Successful operation
         '400':
           description: Invalid ID supplied
@@ -169,114 +358,6 @@ paths:
           description: Access denied to this post
         '404':
           description: Post not found
-        '422':
-          description: Validation exception
-        '500':
-          description: Internal server error
-  /chats/{chatId}/messages:
-    get:
-      tags:
-        - messages
-      summary: Get messages from the chat.
-      parameters:
-        - name: chatId
-          in: path
-          description: The ID of the chat from which we want to receive messages
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1456
-        - name: page_size
-          in: query
-          description: Number of messages to return
-          required: false
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 100
-            default: 20
-            example: 10
-        - name: cursor
-          in: query
-          description: Cursor for pagination (timestamp of last message)
-          required: false
-          schema:
-            type: string
-            example: "1709649600"
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessagesResponse'
-        '400':
-          description: Invalid input
-        '403':
-          description: Access denied to this chat
-        '404':
-          description: Chat not found
-        '422':
-          description: Validation exception
-        '500':
-          description: Internal server error
-    post:
-      tags:
-        - messages
-      summary: Send message to chat.
-      parameters:
-        - name: chatId
-          in: path
-          description: The ID of the chat from which we want to receive messages
-          required: true
-          schema:
-            type: integer
-            example: 1456
-      requestBody:
-        description: Send message to chat with user or group.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Message'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-        '400':
-          description: Invalid ID supplied
-        '403':
-          description: Access denied to this chat
-        '404':
-          description: Chat not found
-        '422':
-          description: Validation exception
-        '500':
-          description: Internal server error
-  /users/{userId}/follow:
-    post:
-      tags:
-        - users
-      summary: Subscribe to user.
-      parameters:
-        - name: userId
-          in: path
-          description: The ID of the user from which we want to follow
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1199323
-      responses:
-        '200':
-          description: Successful operation
-        '400':
-          description: Invalid ID supplied
-        '403':
-          description: Access denied to this user
-        '404':
-          description: User not found
         '422':
           description: Validation exception
         '500':
@@ -314,29 +395,6 @@ paths:
           description: Processing failed
         '500':
           description: Internal server error
-  /media/{media_uuid}:
-    get:
-      tags:
-        - media
-      summary: Get media file
-      parameters:
-        - name: media_uuid
-          in: path
-          description: Uuid of the media file
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "123e4567-e89b-12d3-a456-426614174000"
-      responses:
-        '200':
-          description: Media file content
-        '404':
-          description: Media file not found
-        '403':
-          description: Access denied
-        '500':
-          description: Internal server error
 components:
   schemas:
     PostsResponse:
@@ -350,17 +408,37 @@ components:
           $ref: '#/components/schemas/Pagination'
     PostCreate:
       type: object
+      required:
+        - location_id
+        - photo_url
       properties:
         location_id:
           type: integer
           format: int64
           example: 345345
-        photo_uuid:
+        photo_url:
           type: string
-          format: uuid
+          format: uri
         description:
           type: string
-          format: text
+          maxLength: 1000
+          example: Всем привет, сегодня я в Саратове. Погодка - блеск!
+    PostUpdate:
+      type: object
+      required:
+        - location_id
+        - photo_url
+      properties:
+        location_id:
+          type: integer
+          format: int64
+          example: 345345
+        photo_url:
+          type: string
+          format: uri
+        description:
+          type: string
+          maxLength: 1000
           example: Всем привет, сегодня я в Саратове. Погодка - блеск!
     Post:
       type: object
@@ -377,51 +455,24 @@ components:
           type: integer
           format: int64
           example: 345345
-        photo_uuid:
+        photo_url:
           type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
+          format: uri
+          example: "https://example.com"
         description:
           type: string
           example: Всем привет, сегодня я в Саратове. Погодка - блеск!
-        comments_count:
-          type: integer
-          format: int64
-          example: 10
-        likes_count:
-          type: integer
-          format: int64
-          example: 100
-        created_at:
-          type: string
-          format: date-time
-    MessagesResponse:
-      type: object
-      properties:
-        messages:
-          type: array
-          items:
-            $ref: '#/components/schemas/Message'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    Message:
-      type: object
-      properties:
-        author_id:
-          type: integer
-          format: int64
-          example: 3566
-        message_text:
-          type: string
-          example: "Привет, как съездил в Сызрань?"
         created_at:
           type: string
           format: date-time
     CommentCreate:
       type: object
+      required:
+        - comment_text
       properties:
         comment_text:
           type: string
+          maxLength: 200
           example: "Буду в Пензе - позвоню"
     CommentsResponse:
       type: object
@@ -435,6 +486,10 @@ components:
     Comment:
       type: object
       properties:
+        id:
+          type: integer
+          format: int64
+          example: 1021
         author_id:
           type: integer
           format: int64
@@ -444,15 +499,33 @@ components:
           example: "Буду в Пензе - позвоню"
         created_at:
           type: string
-          format: date
+          format: date-time
+          example: "2025-09-04T18:16:48+03:00"
+    LikesResponse:
+      type: object
+      properties:
+        likes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Like'
+    Like:
+      type: object
+      properties:
+        author_id:
+          type: integer
+          format: int64
+          example: 1199323
+        created_at:
+          type: string
+          format: date-time
           example: "2025-09-04T18:16:48+03:00"
     MediaUploadResponse:
       type: object
       properties:
-        file_uuid:
+        file_url:
           type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
+          format: uri
+          example: "https://example.com"
     Pagination:
       type: object
       properties:
@@ -465,4 +538,3 @@ components:
         total_count:
           type: integer
           format: int64
-          example: 15420
